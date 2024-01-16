@@ -33,7 +33,7 @@ const ModalAddReservation: React.FC<ModalAddReservationProps> = ({ visible, onCa
       current.isBefore(dayjs().startOf('day')) ||
       fechas.some(
         (reserva) =>
-          current.isAfter(dayjs(reserva.fechaInicio).endOf('day')) &&
+          current.isAfter(dayjs(reserva.fechaInicio).startOf('day')) &&
           current.isBefore(dayjs(reserva.fechaFin).startOf('day').add(1, 'day'))
       )
     );
@@ -63,12 +63,34 @@ const ModalAddReservation: React.FC<ModalAddReservationProps> = ({ visible, onCa
   
     return {};
   };
+
+  const dateRenderFin = (current: dayjs.Dayjs) => {
+    const isReserved = fechas.some(
+      (reserva) =>
+        current.isAfter(dayjs(reserva.fechaInicio).startOf('day')) &&
+        current.isBefore(dayjs(reserva.fechaFin).startOf('day').add(1, 'day'))
+    );
+
+    if (isReserved) {
+      return (
+        <div className="ant-picker-cell-inner" style={{ color: 'red' }}>
+          {current.date()}
+        </div>
+      );
+    }
+
+    return <div className="ant-picker-cell-inner">{current.date()}</div>;
+  };
   
 
   const onFinish = async (values: any) => {
     const fechaInicio = dayjs(values.fechaInicio).startOf('day');
-    const fechaFin = dayjs(values.fechaFin).endOf('day');
+    const fechaFin = dayjs(values.fechaFin).startOf('day');
     
+    console.log('Fecha de inicio 2.0:', fechaInicio.format());  
+  console.log('Fecha de fin2.0:', fechaFin.format());        
+
+
     if (!fechaInicio.isValid() || !fechaFin.isValid() || fechaFin.isBefore(fechaInicio)) {
       message.error('La fecha de fin debe ser posterior a la fecha de inicio');
       return;
@@ -157,22 +179,32 @@ const ModalAddReservation: React.FC<ModalAddReservationProps> = ({ visible, onCa
           </Col>
           <Col xs={24} sm={12}>
             <Form.Item
-              name="fechaFin"
-              label="Fecha de Fin"
-              rules={[{ required: true, message: 'Seleccione la fecha de fin' }]}
+             name="fechaFin"
+             label="Fecha de Fin"
+             rules={[{ required: true, message: 'Seleccione la fecha de fin' }]}
             >
-              <DatePicker
-                format="YYYY-MM-DD"
-                disabledDate={(current) =>
-                  current &&
-                  (current < dayjs().startOf('day') || current < form.getFieldValue('fechaInicio') || disabledDate(current))
-                }
-                disabledTime={(current) => disabledTime(current, 'end')}
-                style={{ width: '100%' }}
-                inputReadOnly
-              />
-            </Form.Item>
-          </Col>
+           <DatePicker
+            format="YYYY-MM-DD"
+            disabledDate={(current) =>
+            current &&
+            (current < dayjs().startOf('day') || current < form.getFieldValue('fechaInicio') || disabledDate(current))
+            }
+           disabledTime={(current) => disabledTime(current, 'end')}
+           style={{ width: '100%' }}
+           inputReadOnly
+           onChange={(fechaFin) => {
+           const fechaInicio = form.getFieldValue('fechaInicio');
+           if (fechaFin && fechaInicio && fechaFin.isBefore(dayjs(fechaInicio))) {
+            form.setFieldsValue({ fechaFin: null });
+            message.error('La fecha de fin debe ser posterior a la fecha de inicio');
+           }
+           }}
+           dateRender={dateRenderFin}
+
+           />
+           </Form.Item>
+         </Col>
+
         </Row>
 
         <Button type="primary" htmlType="submit" style={{ backgroundColor: 'rgb(35, 46, 58)', width: '100%' }}>

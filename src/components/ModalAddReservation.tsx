@@ -88,7 +88,8 @@ const ModalAddReservation: React.FC<ModalAddReservationProps> = ({ visible, onCa
     const fechaFin = dayjs(values.fechaFin).startOf('day');
     
     console.log('Fecha de inicio 2.0:', fechaInicio.format());  
-  console.log('Fecha de fin2.0:', fechaFin.format());        
+    console.log('Fecha de fin2.0:', fechaFin.format());        
+    console.log('Valor de numeroCliente:', values.numeroCliente);
 
 
     if (!fechaInicio.isValid() || !fechaFin.isValid() || fechaFin.isBefore(fechaInicio)) {
@@ -134,6 +135,22 @@ const ModalAddReservation: React.FC<ModalAddReservationProps> = ({ visible, onCa
           rules={[{ required: true, message: 'Ingrese el nombre del cliente' }]}
         >
           <Input />
+        </Form.Item>
+
+        <Form.Item
+          name="numeroCliente"
+          label="Numero del Cliente"
+          rules={[{ required: true, message: 'Ingrese el número del cliente' }]}
+        >
+           <Input
+          type="tel"
+          onKeyDown={(e) => {
+          // Permitir solo números y teclas de control (como borrar, retroceso, etc.)
+          if (!/^\d$/.test(e.key) && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          e.preventDefault();
+          }
+          }}
+            />
         </Form.Item>
 
         <Form.Item
